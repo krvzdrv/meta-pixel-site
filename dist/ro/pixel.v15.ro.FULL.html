@@ -1,0 +1,390 @@
+<script>
+/************************************************
+ * 🟦 META PIXEL + FACEBOOK/INSTAGRAM SHOPS
+ * v15 — popup checkout fix, fallback, local backup, orderID eventID
+ * Сайт: alumineu.ro | Валюта: RON
+ * Pixel ID берётся из Tilda → Site Settings → Analytics → Facebook Pixel
+ ************************************************/
+(function(){'use strict';
+  var CURRENCY='RON';
+  var LOCAL_BACKUP_KEY='savedCartForPurchase_v1';
+  var LOCAL_BACKUP_TTL_MS=30*60*1000;
+  var PURCHASE_DELAY_MS=2500;
+  var IC_CLICK_DELAY_MS=500;
+
+  // ============================
+  // PRODUCT CATALOG MAPPING (RO)
+  // ============================
+  window.productCatalogMapping = {
+    '408246751242': { group: 'invisia_x201', variants: { '778968775512': 'oo9OjTbNgZ8SJAWgghj610' } },
+    '144672586112': { group: 'lightra_x030', variants: { '808560176502': 'Rv6KF1WLiPamjAv2BaZge3' } },
+    '456023117542': { group: 'lightra_x015', variants: { '935810110972': 'olHJtrUhhLVDB5FN2Is6G0' } },
+    '196701299832': { group: 'lightra_x030_s', variants: { '325059620482': 'MzeeWUC0gyE9JJJLbz34v3' } },
+    '156269856802': { group: 'lightra_x050', variants: { '770514350612': 'wDQZybWWgNkn2Zq49zPi30' } },
+    '173117135412': { group: 'curtina_x402', variants: { 
+      '301964519272': 'e9yQf8rDjzi3XjGnnx3Iw3',
+      '956663279972': 'DKTDmwA2icCZL2vSUjXum3',
+      '458830194052': 'vdjAWIcdhHNfZhVE150J92',
+      '973723430772': 'eePmEHIghXucCCjWcE2zy3'
+    }},
+    '333014532202': { group: 'curtina_x403', variants: { 
+      '293267787752': 'yUubMVw1hqQAZdBztKRgZ2',
+      '196174289902': 'hSqFGvnTjaggVAymnovmh0',
+      '701472319152': 'smfA9ADrg9P4AffHsiprN2',
+      '265935541592': 'Hxf-n56DhLa95Jq8oTmSb3',
+      '131946916342': 'i3hGepcZiU3L8JqEJ2rtV0',
+      '848779219262': 'jx2sQ0lhiTZsQVWNF9X2z0',
+      '822614506962': '34WwfpBUjupvpuPa3EpLr3'
+    }},
+    '287608978832': { group: 'curtina_x405', variants: { 
+      '592438478472': 'zRy2mTY3io-ReCRagT1MI2',
+      '505180922232': '9YYv8DXkjKpGTTDe3j99Y3',
+      '117525235192': 'M7K8jSGug5rmTO1txLm922',
+      '803744608822': 'Rid7eYeaihDEYyuGmwIm10',
+      '876089740212': 'hRYJaVIahB4Jg-O10ZpbV0',
+      '759586955132': 'QYtmUePthsfmVcpZ7LaHB2'
+    }},
+    '847012159042': { group: 'floatia_x301', variants: { '747944340262': 'jzysdA0nhEDukcRfamitz0' } },
+    '723868210042': { group: 'floatia_x302', variants: { 
+      '860427790322': 'IxT7oD8zhIbrnn2LbGw2D0',
+      '267826441912': 'Y7mho3jShobDY2hUqkXX83',
+      '673141786352': 'fxcs1s4Sg4i9usohMYyp11'
+    }},
+    '473336826572': { group: 'invisia_x202', variants: { '799765399652': 'DJNjCqquhcS8YMhhFUUT-3' } },
+    '159363313312': { group: 'invisia_x205', variants: { '307017769502': 'lFPD6yXiiis-LJnoPBaa91' } },
+    '166924722462': { group: 'invisia_x204', variants: { '823128693102': 'zA59TVMAiMOOTZf15BUvl2' } },
+    '677912169582': { group: 'classix_x140', variants: { '146115888752': 'V3cnnvOSiRXwOxWDjbAgp3' } },
+    '361854489052': { group: 'contura_x601', variants: { '216356537132': 'uOmKNKiKhPZzh4UNscvrM3' } },
+    '731234795962': { group: 'curtina_x406', variants: { 
+      '321461814172': 'vdRmfjJniS9p1gOygMbDs0',
+      '598458446862': '08Gs75cLiwndvRDfwZZkQ2'
+    }},
+    '437903368922': { group: 'curtina_x407', variants: { 
+      '384805841032': 'cJyPtbDhhRAmihZrojWDn0',
+      '255274699252': 'gtIKBLtJghv4WzA42yxPP1'
+    }},
+    '860229210372': { group: 'invisia_x206', variants: { '336484823622': 'EGXmtijjgeQdvXQSqdLGi3' } },
+    '578289099072': { group: 'invisia_x207', variants: { '479831501182': 'YZTju3ikgOF1-Sj6ktK6e2' } },
+    '150169575472': { group: 'invisia_x208', variants: { '994668282432': 'eyVbkQihgGQtYR5EF0P4w0' } },
+    '288954167352': { group: 'invisia_x209', variants: { 
+      '462428431762': 'cTT1GGAZj76alVXu4vaAe1',
+      '425076540332': 'EeRJkcybhq5xX9vhB-xzv3'
+    }},
+    '864047075712': { group: 'floatia_x303', variants: { 
+      '832357855822': 'xO7PAABriJTHSKVNGiuYl3',
+      '906636968422': 'MyI2v2JMhnRtUrh6H58nz0'
+    }},
+    '542737993872': { group: 'stratos_x701', variants: { '938257585092': 'mCMAr4yQhDaPX-LNJ5RD73' } },
+    '180714057592': { group: 'classix_x130', variants: { '351656730772': 'lxFpGXGnhGh-TPEwCLiEt2' } },
+    '593233210852': { group: 'classix_x101', variants: { '380588718002': 'rtBsri0AgIfzRs45xlYEo3' } },
+    '576662810612': { group: 'stratos_x704', variants: { 
+      '374541289962': 'TTCe8rd4gfNWGALqZZ6XQ1',
+      '988216812582': '5rGDU6PghnaCaAB4hbK363'
+    }},
+    '513642533402': { group: 'stratos_x703', variants: { '658333943602': '9DTMhoqug8m-s5umlvoUH2' } },
+    '511268989722': { group: 'stratos_x702', variants: { '169849761712': 'A8KXwZGog4GTrG3uTcqe72' } },
+    '187580245912': { group: 'lamplix_x930', variants: { '268577551862': '63SkQfPpjSYcEKuuMh-YG2' } },
+    '775734410552': { group: 'lamplix_x950', variants: { '427347716442': 'Xo7o90pXhmhKf1FmlwptL2' } },
+    '136449452752': { group: 'voltiva_z501', variants: { '333574672972': '0WyuTzYWjCQp6Fj0LuztH0' } },
+    '343236625502': { group: 'curtina_x405_m', variants: { 
+      '164516627472': 'iSRbWSLtitojIsPO0sI9x2',
+      '718659662222': 'gA28ToLCggK3W8YPSsFkT1',
+      '339864126142': 'CkVvKhJbiGhhK2anvHdB33',
+      '802797533272': 'PIsjk6JZiDyyFLIyu2lyU0'
+    }},
+    '968581961292': { group: 'floatia_x304', variants: { '346589621152': 'OGuLhFuVjSlwHsBusU5Sf1' } },
+    '727520234412': { group: 'curtina_x408', variants: { '250535359432': 'FWceQ5ETivN6fBl0i-tWJ2' } },
+    '406408166412': { group: 'curtina_x409', variants: { '566926447962': 'LhsJi728gSt1-qEKriOWU2' } },
+    '774722272712': { group: 'curtina_x410', variants: { '612166377572': 'JLVFDRdrgtcM9IORQDzXv0' } },
+    '103807104462': { group: 'curtina_x411', variants: { '832085323322': 'KmK1hPPBihH4KDyWNRaPo0' } },
+    '902059193332': { group: 'curtina_x404', variants: { 
+      '364738696702': 'ryMNNy0Vjq1ciFgP2gUaK3',
+      '808768864562': '6UZy5OEYgiU2cDd92z2R00'
+    }}
+  };
+
+  // ============================
+  // HELPERS
+  // ============================
+  function deepClone(obj){ try { return JSON.parse(JSON.stringify(obj)); } catch(_) { return null; } }
+  function waitForFbq(ready){ if (typeof window.fbq === 'function') return ready(); setTimeout(function(){ waitForFbq(ready); }, 100); }
+
+  function getProductData(productElement) {
+    if (!productElement) return null;
+    var parentUid = productElement.getAttribute('data-product-gen-uid');
+    var variantUid = productElement.getAttribute('data-product-uid');
+    if (!parentUid || !variantUid) return null;
+
+    var productMapping = window.productCatalogMapping[parentUid];
+    if (!productMapping) return null;
+
+    var variantId = productMapping.variants[variantUid];
+    var fallbackUsed = false;
+    if (!variantId) { variantId = productMapping.group; fallbackUsed = true; }
+
+    var titleElement = productElement.querySelector('.js-product-name, .t-name, .t-store__card__title');
+    var priceElement = productElement.querySelector('.js-product-price, .t-store__card__price-value');
+
+    return {
+      group_id: productMapping.group,
+      variant_id: variantId,
+      content_name: titleElement ? titleElement.textContent.trim() : 'Product',
+      value: priceElement ? parseFloat(String(priceElement.textContent).replace(/[^\d.,]/g, '').replace(',', '.')) : 0,
+      fallback_used: fallbackUsed
+    };
+  }
+
+  function snapshotCartFromTilda() {
+    var contentIds = [], totalValue = 0, numItems = 0, fallbackUsed = false;
+
+    if (!window.tcart || !Array.isArray(window.tcart.products) || window.tcart.products.length === 0) {
+      return { content_ids: [], value: 0, num_items: 0, fallback_used: false, raw: null, order_id: null };
+    }
+
+    window.tcart.products.forEach(function(product) {
+      var mapped = false;
+
+      if (window.productCatalogMapping) {
+        for (var parentUid in window.productCatalogMapping) {
+          var m = window.productCatalogMapping[parentUid];
+          if (m.variants[product.uid]) {
+            contentIds.push(m.group, m.variants[product.uid]);
+            mapped = true;
+            break;
+          }
+        }
+      }
+
+      if (!mapped) {
+        var parent = window.productCatalogMapping && window.productCatalogMapping[product.uid];
+        if (parent) {
+          var firstVariantUid = Object.keys(parent.variants)[0];
+          var variantId = parent.variants[firstVariantUid];
+          contentIds.push(parent.group, variantId);
+          mapped = true;
+        }
+      }
+
+      if (!mapped) { contentIds.push(product.uid, product.uid); fallbackUsed = true; }
+
+      totalValue += parseFloat(product.price || 0) * parseInt(product.quantity || 1, 10);
+      numItems += parseInt(product.quantity || 1, 10);
+    });
+
+    return {
+      content_ids: contentIds,
+      value: Number.isFinite(totalValue) ? Number(totalValue) : 0,
+      num_items: numItems,
+      fallback_used: fallbackUsed,
+      raw: deepClone(window.tcart),
+      order_id: (window.tcart && window.tcart.orderid) ? String(window.tcart.orderid) : null
+    };
+  }
+
+  function persistSavedCart(cart){ try { localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify({ ts: Date.now(), cart: cart })); } catch(e){} }
+  function restoreSavedCart(maxAgeMs){
+    try {
+      var raw = localStorage.getItem(LOCAL_BACKUP_KEY);
+      if (!raw) return null;
+      var obj = JSON.parse(raw);
+      if (!obj || !obj.cart) return null;
+      if (maxAgeMs && Date.now() - (obj.ts || 0) > maxAgeMs) return null;
+      return obj.cart;
+    } catch(e){ return null; }
+  }
+
+  var purchaseSent = false;
+  function sendPurchaseEvent(cartData) {
+    if (purchaseSent) return;
+    if (!cartData || !Array.isArray(cartData.content_ids) || cartData.content_ids.length === 0) return;
+
+    purchaseSent = true;
+    var eventId = cartData.order_id ? ('purchase_' + cartData.order_id) : ('purchase_' + Date.now());
+
+    fbq('track', 'Purchase', {
+      content_ids: cartData.content_ids,
+      content_type: 'product',
+      value: Number(cartData.value || 0),
+      currency: CURRENCY,
+      num_items: Number(cartData.num_items || 0)
+    }, { eventID: eventId });
+
+    try { console.log('🎉 Purchase sent', { value: cartData.value, currency: CURRENCY, num_items: cartData.num_items, eventID: eventId, fallback_used: !!cartData.fallback_used }); } catch(_){}
+  }
+
+  function initMetaPixelEnhanced() {
+    if (typeof fbq === 'undefined') { setTimeout(initMetaPixelEnhanced, 100); return; }
+
+    function initViewContent() {
+      var productElement = document.querySelector('[data-product-gen-uid][data-product-uid]');
+      if (productElement) {
+        var productData = getProductData(productElement);
+        if (productData) {
+          fbq('track', 'ViewContent', {
+            content_name: productData.content_name,
+            content_ids: [productData.group_id, productData.variant_id],
+            content_type: 'product',
+            value: Number(productData.value || 0),
+            currency: CURRENCY
+          });
+        }
+
+        var observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-product-uid') {
+              var newProductData = getProductData(productElement);
+              if (newProductData) {
+                fbq('track', 'ViewContent', {
+                  content_name: newProductData.content_name,
+                  content_ids: [newProductData.group_id, newProductData.variant_id],
+                  content_type: 'product',
+                  value: Number(newProductData.value || 0),
+                  currency: CURRENCY
+                });
+              }
+            }
+          });
+        });
+        observer.observe(productElement, { attributes: true, attributeFilter: ['data-product-uid'] });
+      }
+    }
+    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initViewContent); } else { initViewContent(); }
+
+    document.addEventListener('tstore-cart-add', function() {
+      var productElement = document.querySelector('[data-product-gen-uid][data-product-uid]');
+      var productData = getProductData(productElement);
+      if (productData) {
+        fbq('track', 'AddToCart', {
+          content_name: productData.content_name,
+          content_ids: [productData.group_id, productData.variant_id],
+          content_type: 'product',
+          value: Number(productData.value || 0),
+          currency: CURRENCY
+        });
+      }
+      var snap = snapshotCartFromTilda();
+      if (snap.content_ids.length > 0) { window.savedCartForPurchase = snap; persistSavedCart(snap); }
+    });
+
+    document.addEventListener('click', function(e) {
+      var button = e.target && e.target.closest('a[href*="cart"], button');
+      if (!button) return;
+      var buttonText = (button.textContent || '').trim().toLowerCase();
+      if (buttonText.includes('adaug') || buttonText.includes('coș') || buttonText.includes('cos') || buttonText.includes('cart') ||
+          buttonText.includes('dodaj') || buttonText.includes('kosz') || buttonText.includes('warenkorb')) {
+        setTimeout(function() {
+          var productElement = document.querySelector('[data-product-gen-uid][data-product-uid]');
+          var productData = getProductData(productElement);
+          if (productData) {
+            fbq('track', 'AddToCart', {
+              content_name: productData.content_name,
+              content_ids: [productData.group_id, productData.variant_id],
+              content_type: 'product',
+              value: Number(productData.value || 0),
+              currency: CURRENCY
+            });
+          }
+          var snap = snapshotCartFromTilda();
+          if (snap.content_ids.length > 0) { window.savedCartForPurchase = snap; persistSavedCart(snap); }
+        }, 300);
+      }
+    });
+
+    var checkoutInitiated = false;
+    var checkoutObserver = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        mutation.addedNodes && Array.prototype.forEach.call(mutation.addedNodes, function(node) {
+          if (node.nodeType !== 1 || checkoutInitiated) return;
+          var checkoutFormField = node.querySelector && node.querySelector('input[name="name"], input[name="email"], input[placeholder*="Name"], input[placeholder*="Email"], input[placeholder*="Nume"]');
+          if (checkoutFormField) {
+            checkoutInitiated = true;
+            var cartData = snapshotCartFromTilda();
+            if (cartData.content_ids.length > 0) {
+              window.savedCartForPurchase = cartData; persistSavedCart(cartData);
+              fbq('track', 'InitiateCheckout', {
+                content_ids: cartData.content_ids,
+                content_type: 'product',
+                value: Number(cartData.value || 0),
+                currency: CURRENCY,
+                num_items: Number(cartData.num_items || 0)
+              }, { eventID: 'ic_dom_' + Date.now() });
+            }
+          }
+        });
+      });
+    });
+    checkoutObserver.observe(document.body, { childList: true, subtree: true });
+
+    document.addEventListener('click', function(e) {
+      var goCheckout = e.target && e.target.closest(
+        'a[href*="checkout"], a[href*="#order"], a[href*="tilda/cart"], ' +
+        'button[name="t-order"], button[data-tilda-store="checkout"], ' +
+        '.t-store__cartwin-prodamount-wrapper .t-btn, .t706__cartwin-prodamount-wrapper .t-btn'
+      );
+      if (!goCheckout) return;
+
+      var snapNow = snapshotCartFromTilda();
+      if (snapNow.content_ids.length > 0) { window.savedCartForPurchase = snapNow; persistSavedCart(snapNow); }
+
+      setTimeout(function() {
+        var data = window.savedCartForPurchase || restoreSavedCart(LOCAL_BACKUP_TTL_MS) || snapshotCartFromTilda();
+        if (data && data.content_ids.length > 0) {
+          fbq('track', 'InitiateCheckout', {
+            content_ids: data.content_ids,
+            content_type: 'product',
+            value: Number(data.value || 0),
+            currency: CURRENCY,
+            num_items: Number(data.num_items || 0)
+          }, { eventID: 'ic_click_' + Date.now() });
+        }
+      }, IC_CLICK_DELAY_MS);
+    });
+
+    document.addEventListener('submit', function(e) {
+      var form = e.target;
+      if (!form) return;
+
+      var isCheckoutForm =
+        form.matches('.t-store__checkout-form form, form[action*="/payment"], form[action*="tilda"], form[id*="form"], form[class*="form"]') ||
+        !!form.querySelector('input[name="name"], input[name="email"], input[type="email"], input[name*="mail" i], input[name*="name" i]');
+
+      if (!isCheckoutForm) return;
+
+      var snap = snapshotCartFromTilda();
+      if (snap.content_ids.length > 0) { window.savedCartForPurchase = snap; persistSavedCart(snap); }
+
+      setTimeout(function() {
+        if (purchaseSent) return;
+        var data = window.savedCartForPurchase || restoreSavedCart(LOCAL_BACKUP_TTL_MS) || snapshotCartFromTilda();
+        if (data && data.content_ids.length > 0) { sendPurchaseEvent(data); }
+      }, PURCHASE_DELAY_MS);
+    }, true);
+
+    function trySendPurchase() {
+      if (purchaseSent) return;
+      var data = window.savedCartForPurchase || restoreSavedCart(LOCAL_BACKUP_TTL_MS) || snapshotCartFromTilda();
+      if (data && data.content_ids.length > 0) { sendPurchaseEvent(data); }
+    }
+    document.addEventListener('tildaform:success', trySendPurchase, false);
+    document.addEventListener('tildaform:aftersuccess', trySendPurchase, false);
+    document.addEventListener('tstore-checkout-success', trySendPurchase, false);
+
+    if (document.querySelector('.t-store__thankyoupage')) {
+      setTimeout(trySendPurchase, 1200);
+    }
+
+    document.addEventListener('tcart_change', function() {
+      var snap2 = snapshotCartFromTilda();
+      if (snap2.content_ids.length > 0) { window.savedCartForPurchase = snap2; persistSavedCart(snap2); }
+    });
+
+    try { console.log('🔧 Meta Pixel v15 (RO) готов. Валюта:', CURRENCY); } catch(_){}
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ waitForFbq(initMetaPixelEnhanced); });
+  } else {
+    waitForFbq(initMetaPixelEnhanced);
+  }
+})();
+</script>

@@ -1,36 +1,204 @@
-# Meta Pixel Scripts for Alumineu (Tilda)
+# Meta Pixel Scripts для Alumineu (Tilda)
 
-Production-ready Meta Pixel scripts for three locales (PL/DE/RO) with support for:
-- ViewContent, AddToCart, InitiateCheckout (DOM + click), Purchase (submit/success/tstore/thankyou)
-- Snapshot before Tilda clears `window.tcart` (popup-checkout)
-- Local backup in `localStorage` with restore on Thank You
-- Fallback mapping (variant → group), eventID uses `orderid` when present
-- Auto-currency by domain (.pl PLN, .de EUR, .ro RON)
+Production-ready Meta Pixel скрипты для трёх локалей (PL/DE/RO) с поддержкой Facebook/Instagram Shops и Dynamic Ads.
 
-## Repository layout
-- `dist/` — Ready-to-paste scripts per locale and tools
-  - `dist/pl/pixel.v15.pl.js` — Polish site (alumineu.pl)
-  - `dist/de/` — German site (placeholder)
-  - `dist/ro/` — Romanian site (placeholder)
-  - `dist/tools/diagnostics_v2.js` — Diagnostics (DevTools console)
-- `src/` — Sources for future changes
-  - `src/pl/` — Polish sources
-  - `src/de/`, `src/ro/` — Placeholders for future scripts
-  - `src/diagnostics/diagnostics_v2.js` — Diagnostics source
+## 🌍 Сайты и Pixel ID
 
-## Usage
-1. Open Tilda → Site Settings → More → Additional HTML → paste the locale script into "Before </head>".
-2. Use the Diagnostics script: open DevTools Console on product/checkout/thankyou pages and paste `dist/tools/diagnostics_v2.js` content to inspect events/mapping/cart.
-3. Verify events in Events Manager → Test Events. Match Rate should stay ≥50% for Shops.
+| Сайт | Pixel ID | Валюта | Статус |
+|------|----------|--------|--------|
+| 🇵🇱 alumineu.pl | `1282270847279518` | PLN | ✅ Готов (65 parents, 109 variants) |
+| 🇩🇪 alumineu.de | `2111821716340904` | EUR | ⏳ В разработке |
+| 🇷🇴 alumineu.ro | `1901060767290355` | RON | ✅ Готов (37 parents, 54 variants) |
 
-## Updating mapping
-- Each locale may have different Tilda UIDs but the same Meta catalog External IDs.
-- Edit the locale script under `src/<locale>/` and copy changes into `dist/<locale>/`.
-- Keep the content_ids order: `[groupId, variantId]`.
+## 📊 Что отслеживается
 
-## Roadmap
-- Add `dist/de/pixel.v15.de.js` and `dist/ro/pixel.v15.ro.js` with locale currency and mapping.
-- Optional: extract common helpers into `src/core/` and unify locale variants via small build script.
+- ✅ **ViewContent** — просмотр товара + смена вариантов
+- ✅ **AddToCart** — добавление в корзину (Tilda событие + клик-fallback)
+- ✅ **InitiateCheckout** — открытие формы заказа (DOM-детект + клик "оформить")
+- ✅ **Purchase** — завершение заказа (submit/DOM success/tstore/thankyou)
 
-## License
+## 🔧 Особенности v15
+
+- **Popup checkout fix**: синхронный snapshot корзины до очистки `window.tcart`
+- **Local backup**: сохранение корзины в `localStorage` с восстановлением на странице "Спасибо"
+- **Fallback mapping**: если variant не найден → используется group ID
+- **EventID с orderid**: уникальные ID событий на базе `tcart.orderid`
+- **Shops-совместимость**: content_ids в порядке [groupId, variantId] для Match Rate ≥50%
+
+## 📁 Структура репозитория
+
+```
+meta-pixel-site/
+├── dist/                      # Готовые скрипты для вставки в Tilda
+│   ├── pl/
+│   │   ├── pixel.v15.pl.FULL.html       # Полный скрипт PL (753 строки)
+│   │   ├── pixel.v15.pl.js              # Минифицированная версия
+│   │   └── mapping.pl.js                # Отдельный mapping
+│   ├── de/                    # Немецкий сайт (в разработке)
+│   ├── ro/
+│   │   └── pixel.v15.ro.FULL.html       # Полный скрипт RO (390 строк)
+│   └── tools/
+│       └── diagnostics_v2.js            # Диагностический скрипт
+├── src/                       # Исходники
+│   ├── pl/
+│   │   ├── mapping.pl.json              # Mapping в JSON
+│   │   └── pixel.v15.pl.js
+│   ├── de/, ro/
+│   └── diagnostics/
+│       └── diagnostics_v2.js
+├── reports/
+│   └── verify_catalog_pl.json           # Отчёт о соответствии каталогу Meta
+├── build_mapping_pl.py                  # Генератор mapping из Tilda CSV
+├── verify_against_catalog_pl.py         # Верификация против каталога Meta
+└── README.md
+```
+
+## 🚀 Быстрый старт
+
+### 1. Установка на сайт
+
+**Польский сайт (alumineu.pl):**
+1. Откройте `/dist/pl/pixel.v15.pl.FULL.html`
+2. Скопируйте всё содержимое
+3. Tilda → Site Settings → Additional HTML → вставьте в "Before </head>"
+4. Сохраните и опубликуйте
+
+**Румынский сайт (alumineu.ro):**
+- Аналогично, используйте `/dist/ro/pixel.v15.ro.FULL.html`
+
+**Немецкий сайт (alumineu.de):**
+- В разработке. Требуется выгрузка Tilda CSV для генерации mapping.
+
+### 2. Проверка работы
+
+**Диагностический скрипт** (запустите в DevTools Console):
+```javascript
+// Скопируйте содержимое dist/tools/diagnostics_v2.js и вставьте в консоль
+```
+
+**Что должны увидеть:**
+- На странице товара: `ViewContent` с `content_ids: [groupId, variantId]`
+- При добавлении в корзину: `AddToCart`
+- При оформлении: `InitiateCheckout` с корректными `content_ids`
+- На странице "Спасибо": `Purchase` с `fallback_used: false`
+
+### 3. Проверка в Meta Events Manager
+
+1. Откройте Events Manager → Test Events
+2. Выполните тестовый заказ
+3. Проверьте события:
+   - ✅ `content_ids` содержит правильные External ID
+   - ✅ `currency` соответствует сайту (PLN/EUR/RON)
+   - ✅ `value` и `num_items` корректны
+
+## 🔄 Обновление mapping
+
+### При добавлении новых товаров на Tilda:
+
+1. Экспортируйте каталог Tilda (CSV):
+   - Tilda Store → Products → Export
+
+2. Запустите генератор:
+```bash
+cd /path/to/meta-pixel-site
+python3 build_mapping_pl.py path/to/store-export.csv
+```
+
+3. Обновлённые файлы:
+   - `src/pl/mapping.pl.json`
+   - `dist/pl/mapping.pl.js`
+
+4. Скопируйте новый mapping в `dist/pl/pixel.v15.pl.FULL.html`
+
+5. Вставьте обновлённый скрипт в Tilda
+
+### При изменении каталога Meta:
+
+1. Экспортируйте каталог из Commerce Manager
+2. Запустите верификацию:
+```bash
+python3 verify_against_catalog_pl.py
+```
+3. Проверьте отчёт в `reports/verify_catalog_pl.json`
+
+## 📈 Match Rate и аналитика
+
+### Текущие результаты (польский сайт):
+- Match Rate: **55%** (было 0%)
+- Покрытие: 109 вариантов из 174 товаров Tilda
+- Fallback: отсутствует для всех товаров на сайте
+
+### Почему порядок [groupId, variantId] важен:
+- Meta считает Match по **первому ID** в `content_ids`
+- Группы (15-20 шт.) → легко достичь 50-100% match
+- Варианты (64+ шт.) → match падает до 15-20%
+
+## 🛠️ Технические детали
+
+### Mapping структура:
+```javascript
+window.productCatalogMapping = {
+  'TILDA_PARENT_UID': {
+    group: 'item_group_id',  // External ID группы в Meta каталоге
+    variants: {
+      'TILDA_VARIANT_UID': 'external_id'  // External ID варианта
+    }
+  }
+}
+```
+
+### Fallback логика:
+1. Ищем `product.uid` как variant UID в mapping
+2. Если не найден → ищем как parent UID
+3. Если не найден → используем `product.uid` как external_id (fallback)
+
+### Purchase события:
+- **4 триггера** для максимальной надёжности:
+  1. Submit формы заказа (синхронный snapshot)
+  2. DOM-детект сообщения "dziękujemy" / "mulțumim"
+  3. Событие `tstore-checkout-success` от Tilda
+  4. Страница "Спасибо" (`.t-store__thankyoupage`)
+
+## 📝 Roadmap
+
+- [ ] Добавить mapping для немецкого сайта (нужна выгрузка Tilda CSV)
+- [ ] Извлечь общие helpers в `src/core/` для переиспользования
+- [ ] Добавить автоматическую генерацию минифицированных версий
+- [ ] Настроить CI/CD для автоматического обновления при коммитах
+
+## 🆘 Troubleshooting
+
+### Purchase не отправляется
+
+**Проблема:** `savedCartForPurchase` undefined, tcart.products пустой
+
+**Решение:**
+- Проверьте, что скрипт загружен **до** оформления заказа
+- Используйте диагностический скрипт для проверки корзины
+- Попробуйте заказ через "полную" форму checkout (не popup)
+
+### Fallback_used: true
+
+**Проблема:** Товар не найден в mapping
+
+**Решение:**
+- Запустите диагностику и найдите Parent UID + Variant UID
+- Добавьте пару в mapping вручную или обновите через `build_mapping_pl.py`
+
+### Match Rate низкий
+
+**Проблема:** Match Rate < 50%
+
+**Решение:**
+- Проверьте порядок `content_ids`: должен быть [groupId, variantId]
+- Убедитесь, что группы в каталоге Meta совпадают с теми, что в mapping
+- Подождите 24-48 часов для обновления статистики
+
+## 📞 Контакты и поддержка
+
+- GitHub Issues: [github.com/krvzdrv/meta-pixel-site/issues](https://github.com/krvzdrv/meta-pixel-site/issues)
+- Meta Events Manager: [business.facebook.com/events_manager2](https://business.facebook.com/events_manager2)
+
+## 📄 Лицензия
+
 MIT
