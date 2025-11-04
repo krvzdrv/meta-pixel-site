@@ -478,7 +478,6 @@
     var priceElement = productElement.querySelector('.js-product-price, .t-store__card__price-value');
 
     return {
-      group_id: productMapping.group,
       variant_id: variantId,
       content_name: titleElement ? titleElement.textContent.trim() : 'Product',
       value: priceElement ? parseFloat(String(priceElement.textContent).replace(/[^\d.,]/g, '').replace(',', '.')) : 0,
@@ -500,7 +499,7 @@
         for (var parentUid in window.productCatalogMapping) {
           var m = window.productCatalogMapping[parentUid];
           if (m.variants[product.uid]) {
-            contentIds.push(m.group, m.variants[product.uid]);
+            contentIds.push(m.variants[product.uid]);
             mapped = true;
             break;
           }
@@ -512,12 +511,12 @@
         if (parent) {
           var firstVariantUid = Object.keys(parent.variants)[0];
           var variantId = parent.variants[firstVariantUid];
-          contentIds.push(parent.group, variantId);
+          contentIds.push(variantId);
           mapped = true;
         }
       }
 
-      if (!mapped) { contentIds.push(product.uid, product.uid); fallbackUsed = true; }
+      if (!mapped) { contentIds.push(product.uid); fallbackUsed = true; }
 
       totalValue += parseFloat(product.price || 0) * parseInt(product.quantity || 1, 10);
       numItems += parseInt(product.quantity || 1, 10);
@@ -581,7 +580,7 @@
         if (productData) {
           fbq('track', 'ViewContent', {
             content_name: productData.content_name,
-            content_ids: [productData.group_id, productData.variant_id],
+            content_ids: [productData.variant_id],
             content_type: 'product',
             value: Number(productData.value || 0),
             currency: CURRENCY
@@ -595,7 +594,7 @@
               if (newProductData) {
                 fbq('track', 'ViewContent', {
                   content_name: newProductData.content_name,
-                  content_ids: [newProductData.group_id, newProductData.variant_id],
+                  content_ids: [newProductData.variant_id],
                   content_type: 'product',
                   value: Number(newProductData.value || 0),
                   currency: CURRENCY
@@ -616,7 +615,7 @@
       if (productData) {
         fbq('track', 'AddToCart', {
           content_name: productData.content_name,
-          content_ids: [productData.group_id, productData.variant_id],
+          content_ids: [productData.variant_id],
           content_type: 'product',
           value: Number(productData.value || 0),
           currency: CURRENCY
@@ -638,7 +637,7 @@
           if (productData) {
             fbq('track', 'AddToCart', {
               content_name: productData.content_name,
-              content_ids: [productData.group_id, productData.variant_id],
+              content_ids: [productData.variant_id],
               content_type: 'product',
               value: Number(productData.value || 0),
               currency: CURRENCY
