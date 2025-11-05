@@ -1,8 +1,9 @@
 <script>
 /************************************************
  * 🟦 META PIXEL + FACEBOOK/INSTAGRAM SHOPS
- * v16 — content_ids format fix (only variant_id)
- * Popup checkout fix, fallback, local backup, orderID eventID
+ * v16.1 — AddToCart eventID for deduplication
+ * Content_ids format fix (only variant_id), popup checkout fix
+ * Fallback, local backup, orderID eventID
  * Сайт: alumineu.pl | Валюта: PLN
  * Pixel ID берётся из Tilda → Site Settings → Analytics → Facebook Pixel
  * 
@@ -620,7 +621,7 @@
           content_type: 'product',
           value: Number(productData.value || 0),
           currency: CURRENCY
-        });
+        }, { eventID: 'atc_' + productData.variant_id + '_' + Date.now() });
       }
       var snap = snapshotCartFromTilda();
       if (snap.content_ids.length > 0) { window.savedCartForPurchase = snap; persistSavedCart(snap); }
@@ -642,7 +643,7 @@
               content_type: 'product',
               value: Number(productData.value || 0),
               currency: CURRENCY
-            });
+            }, { eventID: 'atc_' + productData.variant_id + '_' + Date.now() });
           }
           var snap = snapshotCartFromTilda();
           if (snap.content_ids.length > 0) { window.savedCartForPurchase = snap; persistSavedCart(snap); }
@@ -741,7 +742,7 @@
       if (snap2.content_ids.length > 0) { window.savedCartForPurchase = snap2; persistSavedCart(snap2); }
     });
 
-    try { console.log('🔧 Meta Pixel v16 (PL) готов. Валюта:', CURRENCY); } catch(_){}
+    try { console.log('🔧 Meta Pixel v16.1 (PL) готов. Валюта:', CURRENCY); } catch(_){}
   }
 
   if (document.readyState === 'loading') {
