@@ -1,106 +1,137 @@
 <script>
 /************************************************
  * 🟦 META PIXEL + FACEBOOK/INSTAGRAM SHOPS
- * v15 — popup checkout fix, fallback, local backup, orderID eventID
- * Сайт: alumineu.ro | Валюта: RON
+ * v16 — content_ids format fix (only variant_id)
+ * Popup checkout fix, fallback, local backup, orderID eventID
+ * Сайт: alumineu.de | Валюта: EUR
  * Pixel ID берётся из Tilda → Site Settings → Analytics → Facebook Pixel
  ************************************************/
 (function(){'use strict';
-  var CURRENCY='RON';
+  var CURRENCY='EUR';
   var LOCAL_BACKUP_KEY='savedCartForPurchase_v1';
   var LOCAL_BACKUP_TTL_MS=30*60*1000;
   var PURCHASE_DELAY_MS=2500;
   var IC_CLICK_DELAY_MS=500;
 
   // ============================
-  // PRODUCT CATALOG MAPPING (RO)
+  // PRODUCT CATALOG MAPPING (DE)
+  // 51 parents, 80 variants
   // ============================
   window.productCatalogMapping = {
-    '408246751242': { group: 'invisia_x201', variants: { '778968775512': 'oo9OjTbNgZ8SJAWgghj610' } },
-    '144672586112': { group: 'lightra_x030', variants: { '808560176502': 'Rv6KF1WLiPamjAv2BaZge3' } },
-    '456023117542': { group: 'lightra_x015', variants: { '935810110972': 'olHJtrUhhLVDB5FN2Is6G0' } },
-    '196701299832': { group: 'lightra_x030_s', variants: { '325059620482': 'MzeeWUC0gyE9JJJLbz34v3' } },
-    '156269856802': { group: 'lightra_x050', variants: { '770514350612': 'wDQZybWWgNkn2Zq49zPi30' } },
-    '173117135412': { group: 'curtina_x402', variants: { 
-      '301964519272': 'e9yQf8rDjzi3XjGnnx3Iw3',
-      '956663279972': 'DKTDmwA2icCZL2vSUjXum3',
-      '458830194052': 'vdjAWIcdhHNfZhVE150J92',
-      '973723430772': 'eePmEHIghXucCCjWcE2zy3'
+    '442733295411': { group: 'invisia_x201', variants: { '815801714141': 'oo9OjTbNgZ8SJAWgghj610' } },
+    '401127966721': { group: 'lightra_x030', variants: { '510496803981': 'Rv6KF1WLiPamjAv2BaZge3' } },
+    '477064336861': { group: 'lightra_x015', variants: { '744771070761': 'olHJtrUhhLVDB5FN2Is6G0' } },
+    '674701586561': { group: 'lightra_x030_s', variants: { '573449500411': 'MzeeWUC0gyE9JJJLbz34v3' } },
+    '860758794541': { group: 'lightra_x050', variants: { '785067003561': 'wDQZybWWgNkn2Zq49zPi30' } },
+    '702259624591': { group: 'curtina_x402', variants: { 
+      '695056084041': 'e9yQf8rDjzi3XjGnnx3Iw3',
+      '330396319901': 'DKTDmwA2icCZL2vSUjXum3',
+      '361913046022': 'vdjAWIcdhHNfZhVE150J92',
+      '215505426582': 'eePmEHIghXucCCjWcE2zy3'
     }},
-    '333014532202': { group: 'curtina_x403', variants: { 
-      '293267787752': 'yUubMVw1hqQAZdBztKRgZ2',
-      '196174289902': 'hSqFGvnTjaggVAymnovmh0',
-      '701472319152': 'smfA9ADrg9P4AffHsiprN2',
-      '265935541592': 'Hxf-n56DhLa95Jq8oTmSb3',
-      '131946916342': 'i3hGepcZiU3L8JqEJ2rtV0',
-      '848779219262': 'jx2sQ0lhiTZsQVWNF9X2z0',
-      '822614506962': '34WwfpBUjupvpuPa3EpLr3'
+    '511068471861': { group: 'floatia_x301', variants: { '737801824421': 'jzysdA0nhEDukcRfamitz0' } },
+    '296614829931': { group: 'invisia_x202', variants: { '763141907871': 'DJNjCqquhcS8YMhhFUUT-3' } },
+    '834487288081': { group: 'invisia_x205', variants: { '463017471261': 'lFPD6yXiiis-LJnoPBaa91' } },
+    '688784940211': { group: 'invisia_x204', variants: { '439163409561': 'zA59TVMAiMOOTZf15BUvl2' } },
+    '516248023571': { group: 'inserta_y015_f', variants: { '389788504061': 'CWpGaKdlgRQIwS9TWZI6n0' } },
+    '820320102421': { group: 'inserta_y030', variants: { '740165393261': 'MP9kMK6mg9LT--ZPdvSbb1' } },
+    '972999912221': { group: 'classix_x140', variants: { '280241505021': 'V3cnnvOSiRXwOxWDjbAgp3' } },
+    '601597243121': { group: 'contura_x601', variants: { '298004226671': 'uOmKNKiKhPZzh4UNscvrM3' } },
+    '903601380751': { group: 'anglova_y401', variants: { '834435705461': '5Iae0Kl7jHu3J80n7k6Nu3' } },
+    '989701060781': { group: 'inserta_y008', variants: { 
+      '631676915201': '5A33vrjxg2INi6FdYvYHV1',
+      '664407343641': 'Zm1YLzGFjDyJzl5BQ2AZK2'
     }},
-    '287608978832': { group: 'curtina_x405', variants: { 
-      '592438478472': 'zRy2mTY3io-ReCRagT1MI2',
-      '505180922232': '9YYv8DXkjKpGTTDe3j99Y3',
-      '117525235192': 'M7K8jSGug5rmTO1txLm922',
-      '803744608822': 'Rid7eYeaihDEYyuGmwIm10',
-      '876089740212': 'hRYJaVIahB4Jg-O10ZpbV0',
-      '759586955132': 'QYtmUePthsfmVcpZ7LaHB2'
+    '128574877981': { group: 'inserta_y015', variants: { '210738963631': 'jWf3YVZMj28oz3Vn9Ruwa1' } },
+    '306408440381': { group: 'diffusy_y114', variants: { '267066387041': 'SVjKGGnNhIO8Ovbe-z0yF3' } },
+    '736492946461': { group: 'diffusy_y130', variants: { 
+      '323571157641': '5ET97eXngrRKDRbIJ4YhN2',
+      '471254601322': 'yfcIPkXYi7hGeHi9sRjg51'
     }},
-    '847012159042': { group: 'floatia_x301', variants: { '747944340262': 'jzysdA0nhEDukcRfamitz0' } },
-    '723868210042': { group: 'floatia_x302', variants: { 
-      '860427790322': 'IxT7oD8zhIbrnn2LbGw2D0',
-      '267826441912': 'Y7mho3jShobDY2hUqkXX83',
-      '673141786352': 'fxcs1s4Sg4i9usohMYyp11'
+    '520194301621': { group: 'diffusy_y150', variants: { '746109330421': 'Z0jQpgcsgfNvDPq3zycpi1' } },
+    '454560769811': { group: 'endcapp_y205', variants: { 
+      '161270122041': '0tjwIdlUikOX0Ujz8iz0g0',
+      '607025546201': 's3hlPBkThtLs9b-VgS5-72'
     }},
-    '473336826572': { group: 'invisia_x202', variants: { '799765399652': 'DJNjCqquhcS8YMhhFUUT-3' } },
-    '159363313312': { group: 'invisia_x205', variants: { '307017769502': 'lFPD6yXiiis-LJnoPBaa91' } },
-    '166924722462': { group: 'invisia_x204', variants: { '823128693102': 'zA59TVMAiMOOTZf15BUvl2' } },
-    '677912169582': { group: 'classix_x140', variants: { '146115888752': 'V3cnnvOSiRXwOxWDjbAgp3' } },
-    '361854489052': { group: 'contura_x601', variants: { '216356537132': 'uOmKNKiKhPZzh4UNscvrM3' } },
-    '731234795962': { group: 'curtina_x406', variants: { 
-      '321461814172': 'vdRmfjJniS9p1gOygMbDs0',
-      '598458446862': '08Gs75cLiwndvRDfwZZkQ2'
+    '611157772331': { group: 'endcapp_y201', variants: { '231605950141': 'h5ANH4hyhaQ0ahlbaV9nf3' } },
+    '884939976731': { group: 'endcapp_y206', variants: { 
+      '104238911941': 'tPFY8g6HhI3goBhXwFAdR2',
+      '834123095482': 'qbmrWdNBhQrZ9Ppq1rO-N2'
     }},
-    '437903368922': { group: 'curtina_x407', variants: { 
-      '384805841032': 'cJyPtbDhhRAmihZrojWDn0',
-      '255274699252': 'gtIKBLtJghv4WzA42yxPP1'
+    '458051350651': { group: 'endcapp_y202', variants: { '447817890291': '9wJD0JkkglPzVeK5rRpif0' } },
+    '135189710841': { group: 'endcapp_y207', variants: { '466805052782': 'cLEZP2Ssga1osq6fjuzBl3' } },
+    '840003235331': { group: 'endcapp_y204', variants: { '716161195161': 'mY3nP58iiQbbhe6E8ifuq2' } },
+    '258804088851': { group: 'endcapp_y203', variants: { '638881995721': 'gjxLSmpZiFX6ORefsKjSS1' } },
+    '244022033352': { group: 'classix_x101', variants: { '536934646932': 'rtBsri0AgIfzRs45xlYEo3' } },
+    '655075750852': { group: 'classix_x130', variants: { '870397026532': 'lxFpGXGnhGh-TPEwCLiEt2' } },
+    '532236042432': { group: 'invisia_x206', variants: { '416048977772': 'EGXmtijjgeQdvXQSqdLGi3' } },
+    '448575031522': { group: 'invisia_x207', variants: { '108830859612': 'YZTju3ikgOF1-Sj6ktK6e2' } },
+    '594015128372': { group: 'invisia_x208', variants: { '439166830922': 'eyVbkQihgGQtYR5EF0P4w0' } },
+    '154636665012': { group: 'invisia_x209', variants: { 
+      '664079902622': 'cTT1GGAZj76alVXu4vaAe1',
+      '215949324572': 'EeRJkcybhq5xX9vhB-xzv3'
     }},
-    '860229210372': { group: 'invisia_x206', variants: { '336484823622': 'EGXmtijjgeQdvXQSqdLGi3' } },
-    '578289099072': { group: 'invisia_x207', variants: { '479831501182': 'YZTju3ikgOF1-Sj6ktK6e2' } },
-    '150169575472': { group: 'invisia_x208', variants: { '994668282432': 'eyVbkQihgGQtYR5EF0P4w0' } },
-    '288954167352': { group: 'invisia_x209', variants: { 
-      '462428431762': 'cTT1GGAZj76alVXu4vaAe1',
-      '425076540332': 'EeRJkcybhq5xX9vhB-xzv3'
+    '997882810142': { group: 'floatia_x303', variants: { 
+      '769222256172': 'VL9D-5xNhHiRwdOhXxgjl3',
+      '267068344872': 'xO7PAABriJTHSKVNGiuYl3',
+      '993946525262': 'MyI2v2JMhnRtUrh6H58nz0'
     }},
-    '864047075712': { group: 'floatia_x303', variants: { 
-      '832357855822': 'xO7PAABriJTHSKVNGiuYl3',
-      '906636968422': 'MyI2v2JMhnRtUrh6H58nz0'
+    '210183251962': { group: 'floatia_x302', variants: { 
+      '817061220332': 'IxT7oD8zhIbrnn2LbGw2D0',
+      '450749495132': 'Y7mho3jShobDY2hUqkXX83',
+      '549075235292': 'fxcs1s4Sg4i9usohMYyp11'
     }},
-    '542737993872': { group: 'stratos_x701', variants: { '938257585092': 'mCMAr4yQhDaPX-LNJ5RD73' } },
-    '180714057592': { group: 'classix_x130', variants: { '351656730772': 'lxFpGXGnhGh-TPEwCLiEt2' } },
-    '593233210852': { group: 'classix_x101', variants: { '380588718002': 'rtBsri0AgIfzRs45xlYEo3' } },
-    '576662810612': { group: 'stratos_x704', variants: { 
-      '374541289962': 'TTCe8rd4gfNWGALqZZ6XQ1',
-      '988216812582': '5rGDU6PghnaCaAB4hbK363'
+    '248920853142': { group: 'curtina_x403', variants: { 
+      '956571154802': 'yUubMVw1hqQAZdBztKRgZ2',
+      '655672336162': 'hSqFGvnTjaggVAymnovmh0',
+      '104057293562': 'smfA9ADrg9P4AffHsiprN2',
+      '121407847472': 'Hxf-n56DhLa95Jq8oTmSb3',
+      '308702622892': '34WwfpBUjupvpuPa3EpLr3',
+      '384095982592': 'i3hGepcZiU3L8JqEJ2rtV0',
+      '347030116842': 'jx2sQ0lhiTZsQVWNF9X2z0'
     }},
-    '513642533402': { group: 'stratos_x703', variants: { '658333943602': '9DTMhoqug8m-s5umlvoUH2' } },
-    '511268989722': { group: 'stratos_x702', variants: { '169849761712': 'A8KXwZGog4GTrG3uTcqe72' } },
-    '187580245912': { group: 'lamplix_x930', variants: { '268577551862': '63SkQfPpjSYcEKuuMh-YG2' } },
-    '775734410552': { group: 'lamplix_x950', variants: { '427347716442': 'Xo7o90pXhmhKf1FmlwptL2' } },
-    '136449452752': { group: 'voltiva_z501', variants: { '333574672972': '0WyuTzYWjCQp6Fj0LuztH0' } },
-    '343236625502': { group: 'curtina_x405_m', variants: { 
-      '164516627472': 'iSRbWSLtitojIsPO0sI9x2',
-      '718659662222': 'gA28ToLCggK3W8YPSsFkT1',
-      '339864126142': 'CkVvKhJbiGhhK2anvHdB33',
-      '802797533272': 'PIsjk6JZiDyyFLIyu2lyU0'
+    '887911625442': { group: 'curtina_x405', variants: { 
+      '548490948072': 'zRy2mTY3io-ReCRagT1MI2',
+      '428208056282': '9YYv8DXkjKpGTTDe3j99Y3',
+      '256291393412': 'M7K8jSGug5rmTO1txLm922',
+      '873406416852': 'Rid7eYeaihDEYyuGmwIm10',
+      '750234824842': 'hRYJaVIahB4Jg-O10ZpbV0',
+      '576926526152': 'QYtmUePthsfmVcpZ7LaHB2'
     }},
-    '968581961292': { group: 'floatia_x304', variants: { '346589621152': 'OGuLhFuVjSlwHsBusU5Sf1' } },
-    '727520234412': { group: 'curtina_x408', variants: { '250535359432': 'FWceQ5ETivN6fBl0i-tWJ2' } },
-    '406408166412': { group: 'curtina_x409', variants: { '566926447962': 'LhsJi728gSt1-qEKriOWU2' } },
-    '774722272712': { group: 'curtina_x410', variants: { '612166377572': 'JLVFDRdrgtcM9IORQDzXv0' } },
-    '103807104462': { group: 'curtina_x411', variants: { '832085323322': 'KmK1hPPBihH4KDyWNRaPo0' } },
-    '902059193332': { group: 'curtina_x404', variants: { 
-      '364738696702': 'ryMNNy0Vjq1ciFgP2gUaK3',
-      '808768864562': '6UZy5OEYgiU2cDd92z2R00'
-    }}
+    '584241463252': { group: 'curtina_x406', variants: { 
+      '483379290462': 'vdRmfjJniS9p1gOygMbDs0',
+      '747872544362': '08Gs75cLiwndvRDfwZZkQ2'
+    }},
+    '327751847912': { group: 'curtina_x407', variants: { 
+      '511209364352': 'cJyPtbDhhRAmihZrojWDn0',
+      '133200592282': 'gtIKBLtJghv4WzA42yxPP1'
+    }},
+    '583223803412': { group: 'stratos_x701', variants: { '661797286792': 'mCMAr4yQhDaPX-LNJ5RD73' } },
+    '738757843562': { group: 'stratos_x702', variants: { '545285112872': 'A8KXwZGog4GTrG3uTcqe72' } },
+    '288507761852': { group: 'stratos_x703', variants: { '473803836062': '9DTMhoqug8m-s5umlvoUH2' } },
+    '931938974532': { group: 'stratos_x704', variants: { 
+      '183339350492': 'TTCe8rd4gfNWGALqZZ6XQ1',
+      '739115973432': '5rGDU6PghnaCaAB4hbK363'
+    }},
+    '214163110132': { group: 'bandura_x801', variants: { '803224210062': 'Ld9AkcuQi0qA19EQUN-hA0' } },
+    '421906885552': { group: 'diffusy_y134', variants: { '692471598272': 'OKOeFss5i43IMv6ZjYcRM3' } },
+    '484817318102': { group: 'lamplix_x950', variants: { '193834781942': 'Xo7o90pXhmhKf1FmlwptL2' } },
+    '877187536992': { group: 'lamplix_x930', variants: { '261995923602': '63SkQfPpjSYcEKuuMh-YG2' } },
+    '839408572062': { group: 'floatia_x304', variants: { '571996272972': 'OGuLhFuVjSlwHsBusU5Sf1' } },
+    '930556804002': { group: 'curtina_x404', variants: { 
+      '684471350662': 'ryMNNy0Vjq1ciFgP2gUaK3',
+      '636218153652': '6UZy5OEYgiU2cDd92z2R00'
+    }},
+    '357788908752': { group: 'curtina_x405_m', variants: { 
+      '376404890662': 'iSRbWSLtitojIsPO0sI9x2',
+      '813071254712': 'gA28ToLCggK3W8YPSsFkT1',
+      '239473994132': 'CkVvKhJbiGhhK2anvHdB33',
+      '143618961252': 'PIsjk6JZiDyyFLIyu2lyU0'
+    }},
+    '255383169822': { group: 'curtina_x408', variants: { '214899874702': 'FWceQ5ETivN6fBl0i-tWJ2' } },
+    '241166415182': { group: 'curtina_x409', variants: { '403098122232': 'LhsJi728gSt1-qEKriOWU2' } },
+    '684148890872': { group: 'curtina_x410', variants: { '661064747832': 'JLVFDRdrgtcM9IORQDzXv0' } },
+    '259187621202': { group: 'curtina_x411', variants: { '570978296822': 'KmK1hPPBihH4KDyWNRaPo0' } }
   };
 
   // ============================
@@ -269,8 +300,8 @@
       var button = e.target && e.target.closest('a[href*="cart"], button');
       if (!button) return;
       var buttonText = (button.textContent || '').trim().toLowerCase();
-      if (buttonText.includes('adaug') || buttonText.includes('coș') || buttonText.includes('cos') || buttonText.includes('cart') ||
-          buttonText.includes('dodaj') || buttonText.includes('kosz') || buttonText.includes('warenkorb')) {
+      if (buttonText.includes('warenkorb') || buttonText.includes('cart') || buttonText.includes('in den') ||
+          buttonText.includes('dodaj') || buttonText.includes('kosz') || buttonText.includes('adaug') || buttonText.includes('coș')) {
         setTimeout(function() {
           var productElement = document.querySelector('[data-product-gen-uid][data-product-uid]');
           var productData = getProductData(productElement);
@@ -377,7 +408,7 @@
       if (snap2.content_ids.length > 0) { window.savedCartForPurchase = snap2; persistSavedCart(snap2); }
     });
 
-    try { console.log('🔧 Meta Pixel v15 (RO) готов. Валюта:', CURRENCY); } catch(_){}
+    try { console.log('🔧 Meta Pixel v16 (DE) готов. Валюта:', CURRENCY); } catch(_){}
   }
 
   if (document.readyState === 'loading') {
@@ -387,3 +418,4 @@
   }
 })();
 </script>
+

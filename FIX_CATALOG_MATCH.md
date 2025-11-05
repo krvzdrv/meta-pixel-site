@@ -178,3 +178,5 @@ content_ids: ["lightra_x015", "olHJtrUhhLVDB5FN2Is6G0"]
 **Дата создания:** 04.11.2025  
 **Commit:** feat(all): fix content_ids format - use only variant_id for catalog match
 
+
+

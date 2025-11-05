@@ -166,3 +166,5 @@ A: Добавьте External ID в Commerce Manager → Products → Edit produc
 
 **Последнее обновление:** 3 ноября 2024
 
+
+

@@ -1,0 +1,135 @@
+{
+  "catalog_rows": 80,
+  "catalog_pairs": 80,
+  "catalog_external_ids": 80,
+  "mapping_pairs": 108,
+  "mapping_external_ids": 108,
+  "missing_in_mapping": [
+    [
+      "floatia_x303",
+      "VL9D-5xNhHiRwdOhXxgjl3"
+    ],
+    [
+      "stratos_x701",
+      "SJ-WVdxkgS5Fr8PVFErus3"
+    ],
+    [
+      "stratos_x702",
+      "j0NnxjW7iJ43CUpBB1ZiA0"
+    ]
+  ],
+  "missing_in_mapping_total": 3,
+  "extra_in_mapping": [
+    [
+      "aerooom",
+      "67Bbx0xngULuV9UzemHTF3"
+    ],
+    [
+      "aerooom",
+      "QUUROkmnjacZooCUHKa9k1"
+    ],
+    [
+      "aerooom",
+      "jvZowSDbjriTyuZ4gKOP73"
+    ],
+    [
+      "aerroll_z",
+      "ARWzP670jnmjJZpK5JsEU1"
+    ],
+    [
+      "aerroll_z",
+      "KKdTYiB5ilH9EwahKpKah0"
+    ],
+    [
+      "aerroll_z",
+      "xP5AwirJg8GaTPI5ZRvbx2"
+    ],
+    [
+      "bandura_x801",
+      "Ld9AkcuQi0qA19EQUN-hA0"
+    ],
+    [
+      "decorra",
+      "1DXQpiEKjE3GouFX6fQLj1"
+    ],
+    [
+      "decorra",
+      "Mi1z6scziBgnL27xWxmwT2"
+    ],
+    [
+      "decorra",
+      "Uol4AUi6iIvTMzs54EO9j2"
+    ],
+    [
+      "decorra",
+      "bmi8XCqTjEWJdGyaSuIyc0"
+    ],
+    [
+      "decorra",
+      "ergHrlZUg2QIND1V8IhSJ2"
+    ],
+    [
+      "decorra",
+      "lp4e5bsYjDqziPV39cnuC2"
+    ],
+    [
+      "endcapp_y201",
+      "h5ANH4hyhaQ0ahlbaV9nf3"
+    ],
+    [
+      "endcapp_y202",
+      "9wJD0JkkglPzVeK5rRpif0"
+    ],
+    [
+      "endcapp_y203",
+      "gjxLSmpZiFX6ORefsKjSS1"
+    ],
+    [
+      "endcapp_y204",
+      "mY3nP58iiQbbhe6E8ifuq2"
+    ],
+    [
+      "endcapp_y206",
+      "qbmrWdNBhQrZ9Ppq1rO-N2"
+    ],
+    [
+      "endcapp_y206",
+      "tPFY8g6HhI3goBhXwFAdR2"
+    ],
+    [
+      "endcapp_y207",
+      "cLEZP2Ssga1osq6fjuzBl3"
+    ]
+  ],
+  "extra_in_mapping_total": 31,
+  "missing_external_ids": [
+    "SJ-WVdxkgS5Fr8PVFErus3",
+    "VL9D-5xNhHiRwdOhXxgjl3",
+    "j0NnxjW7iJ43CUpBB1ZiA0"
+  ],
+  "missing_external_ids_total": 3,
+  "extra_external_ids": [
+    "0WyuTzYWjCQp6Fj0LuztH0",
+    "1BcJh8vVg8aapGEcAUDrg1",
+    "1DXQpiEKjE3GouFX6fQLj1",
+    "46uEut1Sg0K3ORag6S9WZ0",
+    "67Bbx0xngULuV9UzemHTF3",
+    "9wJD0JkkglPzVeK5rRpif0",
+    "ARWzP670jnmjJZpK5JsEU1",
+    "ASFuUxWDgOBWCHN5ODymF1",
+    "KKdTYiB5ilH9EwahKpKah0",
+    "Ld9AkcuQi0qA19EQUN-hA0",
+    "Mi1z6scziBgnL27xWxmwT2",
+    "QUUROkmnjacZooCUHKa9k1",
+    "SQKcK9vigikWY0Agh6ZSX0",
+    "Uol4AUi6iIvTMzs54EO9j2",
+    "Zroo3n3djONt0OopEffYs1",
+    "bmi8XCqTjEWJdGyaSuIyc0",
+    "cLEZP2Ssga1osq6fjuzBl3",
+    "eSviEBM8guhlvQefni07r1",
+    "ergHrlZUg2QIND1V8IhSJ2",
+    "gjxLSmpZiFX6ORefsKjSS1"
+  ],
+  "extra_external_ids_total": 31,
+  "match_rate_estimate": "96.2%"
+}

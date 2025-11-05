@@ -1,7 +1,8 @@
 <script>
 /************************************************
  * 🟦 META PIXEL + FACEBOOK/INSTAGRAM SHOPS
- * v15 — popup checkout fix, fallback, local backup, orderID eventID
+ * v16 — content_ids format fix (only variant_id)
+ * Popup checkout fix, fallback, local backup, orderID eventID
  * Сайт: alumineu.pl | Валюта: PLN
  * Pixel ID берётся из Tilda → Site Settings → Analytics → Facebook Pixel
  * 
@@ -740,7 +741,7 @@
       if (snap2.content_ids.length > 0) { window.savedCartForPurchase = snap2; persistSavedCart(snap2); }
     });
 
-    try { console.log('🔧 Meta Pixel v15 (PL) готов. Валюта:', CURRENCY); } catch(_){}
+    try { console.log('🔧 Meta Pixel v16 (PL) готов. Валюта:', CURRENCY); } catch(_){}
   }
 
   if (document.readyState === 'loading') {
