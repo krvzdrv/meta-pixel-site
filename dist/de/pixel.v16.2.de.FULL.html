@@ -279,9 +279,9 @@
             } catch(_){}
 
             return _originalFbq.call(this, eventType, eventName, correctedData, correctedOptions);
-          } else {
-            try { console.warn('⚠️ v16.2: Tilda UID не найден:', tildaUid); } catch(_){}
           }
+          // External ID не найден - отправляем оригинал
+          try { console.warn('⚠️ v16.2: Tilda UID не найден, отправляю оригинал:', tildaUid); } catch(_){}
         }
       }
 
