@@ -168,3 +168,8 @@ A: Добавьте External ID в Commerce Manager → Products → Edit produc
 
 
 
+
+
+
+
+

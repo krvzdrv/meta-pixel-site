@@ -1,9 +1,13 @@
 <script>
 /************************************************
  * 🟦 META PIXEL + FACEBOOK/INSTAGRAM SHOPS
- * v16.1 — AddToCart eventID for deduplication
- * Content_ids format fix (only variant_id), popup checkout fix
- * Fallback, local backup, orderID eventID
+ * v16.2 — FBQ INTERCEPTOR: Fix Tilda's wrong content_ids
+ * 
+ * КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ:
+ * Tilda отправляет AddToCart с Tilda UID вместо External ID
+ * Tilda НЕ генерирует событие tstore-cart-add
+ * Решение: Перехватываем fbq и исправляем content_ids на лету
+ * 
  * Сайт: alumineu.pl | Валюта: PLN
  * Pixel ID берётся из Tilda → Site Settings → Analytics → Facebook Pixel
  * 
@@ -458,6 +462,18 @@
 };
 
   // ============================
+  // REVERSE MAPPING (Tilda UID → External ID)
+  // Для быстрого поиска External ID по Tilda UID
+  // ============================
+  window.tildaUidToExternalId = {};
+  for (var parentUid in window.productCatalogMapping) {
+    var mapping = window.productCatalogMapping[parentUid];
+    for (var variantUid in mapping.variants) {
+      window.tildaUidToExternalId[variantUid] = mapping.variants[variantUid];
+    }
+  }
+
+  // ============================
   // HELPERS
   // ============================
   function deepClone(obj){ try { return JSON.parse(JSON.stringify(obj)); } catch(_) { return null; } }
@@ -547,6 +563,77 @@
   }
 
   // ============================
+  // FBQ INTERCEPTOR (v16.2)
+  // Перехватывает вызовы fbq от Tilda и исправляет неправильные content_ids
+  // ============================
+  var _originalFbq = null;
+  var _fbqReady = false;
+
+  function installFbqInterceptor() {
+    if (_fbqReady || typeof window.fbq === 'undefined') return;
+    _fbqReady = true;
+    _originalFbq = window.fbq;
+
+    window.fbq = function() {
+      var eventType = arguments[0];
+      var eventName = arguments[1];
+      var eventData = arguments[2];
+      var eventOptions = arguments[3];
+
+      // ПЕРЕХВАТ AddToCart от Tilda
+      if (eventType === 'track' && eventName === 'AddToCart') {
+        var hasEventID = eventOptions && eventOptions.eventID;
+        var hasContentIds = eventData && Array.isArray(eventData.content_ids) && eventData.content_ids.length > 0;
+
+        // Если нет eventID - это от Tilda, нужно исправить!
+        if (!hasEventID && hasContentIds) {
+          var tildaUid = eventData.content_ids[0];
+          var externalId = window.tildaUidToExternalId[tildaUid];
+
+          if (externalId) {
+            // ИСПРАВЛЯЕМ: Tilda UID → External ID
+            var correctedData = deepClone(eventData);
+            correctedData.content_ids = [externalId];
+
+            // Добавляем eventID
+            var correctedOptions = {
+              eventID: 'atc_' + externalId + '_' + Date.now()
+            };
+
+            try {
+              console.log('🔧 v16.2 ИСПРАВЛЕНИЕ AddToCart:', {
+                from: tildaUid + ' (Tilda UID)',
+                to: externalId + ' (External ID)',
+                eventID: correctedOptions.eventID
+              });
+            } catch(_){}
+
+            // Отправляем ИСПРАВЛЕННОЕ событие
+            return _originalFbq.call(this, eventType, eventName, correctedData, correctedOptions);
+          } else {
+            // External ID не найден - логируем и пропускаем оригинал
+            try {
+              console.warn('⚠️ v16.2: Tilda UID не найден в mapping:', tildaUid);
+            } catch(_){}
+          }
+        }
+      }
+
+      // Все остальные события - пропускаем как есть
+      return _originalFbq.apply(this, arguments);
+    };
+
+    // Копируем свойства
+    for (var prop in _originalFbq) {
+      if (_originalFbq.hasOwnProperty(prop)) {
+        window.fbq[prop] = _originalFbq[prop];
+      }
+    }
+
+    try { console.log('✅ v16.2 FBQ Interceptor установлен'); } catch(_){}
+  }
+
+  // ============================
   // CORE SENDER
   // ============================
   var purchaseSent = false;
@@ -573,6 +660,9 @@
   // ============================
   function initMetaPixelEnhanced() {
     if (typeof fbq === 'undefined') { setTimeout(initMetaPixelEnhanced, 100); return; }
+
+    // УСТАНАВЛИВАЕМ ПЕРЕХВАТЧИК ПЕРВЫМ ДЕЛОМ!
+    installFbqInterceptor();
 
     // 1) ViewContent + смена варианта
     function initViewContent() {
@@ -742,7 +832,7 @@
       if (snap2.content_ids.length > 0) { window.savedCartForPurchase = snap2; persistSavedCart(snap2); }
     });
 
-    try { console.log('🔧 Meta Pixel v16.1 (PL) готов. Валюта:', CURRENCY); } catch(_){}
+    try { console.log('🔧 Meta Pixel v16.2 (PL) готов. Валюта:', CURRENCY); } catch(_){}
   }
 
   if (document.readyState === 'loading') {
